@@ -2,15 +2,19 @@
 #include <string.h>
 #include "mpi.h"
 
-void loadDataFromFile( FILE *fp,int **arr,int rank,int row , int col );
-int **AllocateMatrix(int row , int col);
+void loadDataFromFile( FILE *fp,int *arr,int rank,int row , int col );
+
+int printMatrix(int *output , int row , int col);
 int main(int argc , char * argv[])
 {
+       FILE *myFile;
 	int my_rank;
 	int p;			
 	int source;
 	int dest;	
 	int tag = 0;	
+     int Condidates, Voters ;
+    
 	MPI_Status status;	
 				
     MPI_Init( &argc , &argv );
@@ -19,51 +23,50 @@ int main(int argc , char * argv[])
 
 	if( my_rank == 0)
 	{
-        int i,j;
-        FILE *myFile;
-        myFile = fopen("kemo.txt" , "r");
-        int col , row ;
-      
-        fscanf(myFile , "%d" ,&col);
-        fscanf(myFile , "%d" ,&row);
         
-        int output[row][col];
-       // output = AllocateMatrix(row,col);
-        loadDataFromFile(myFile , output , my_rank , row  , col );
-            printf("Hiiiwrqreiiiiiiiiiiii");
-        for (i = 0 ; i < row ; i++){
-            for(j = 0 ;j < col ;j++)
-                printf("%d\t" , output[i][j]);
-            printf("\n");
-        }
-            printf("Hiiii");
-            fclose(myFile);
+     
+        char FileName[15];
+        printf("Enter File Name >> ");
+        scanf("%s" , FileName);
+
+        myFile = fopen(FileName, "r");
+       
+        fscanf(myFile , "%d" ,&Condidates);  // col=3
+        fscanf(myFile , "%d" ,&Voters);  // row =4
+
+       fclose(myFile);
 	}
 	MPI_Finalize();
 	return 0;
 }
-void loadDataFromFile( FILE *fp,int **arr,int rank,int row , int col )
+void loadDataFromFile( FILE *fp,int *arr,int rank,int row , int col )
 {
     
    int  i,j;
-   //fseek(fp , cluster , SEEK_SET);
+
+  // printf("%d\t%d\n" , row , col );
     for(i =0 ;i < row  ;i++)
-    {
-        printf("Hiiiiiiiiiiiiiii\n");
+    {   
+        
          for(j = 0 ;j < col ; j++)
-            fscanf(fp, "%d",(char *) & arr[i][j]);
+            {
+                int x ; 
+                fscanf(fp, "%d",(char *) &x);
+                 arr[(i*col)+j] = x;
+            }
+           fseek(fp,1, SEEK_CUR);
+           
     }
 
 
 }
 
-int **AllocateMatrix(int row , int col)
+int printMatrix(int *output , int row , int col)
 {
-    int *lin , **matrix,i;
-    lin = malloc(row * col *sizeof(int));
-    for(i = 0 ;i < row ; i++)
-    {
-        matrix[i]= &lin[i*col];
-    }
-    return matrix;
+    int i,j;
+       for (i = 0 ; i < row ; i++){
+            for(j = 0 ;j < col ;j++)
+                printf("%d\t" , output[(i*col)+j]);
+            printf("\n");
+        }
 }
