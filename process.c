@@ -7,7 +7,7 @@ void loadDataFromFile( FILE *fp,int *arr,int rank,int row , int col );
 int printMatrix(int *output , int row , int col);
 int main(int argc , char * argv[])
 {
-       FILE *myFile;
+      
 	int my_rank;
 	int p;			
 	int source;
@@ -20,12 +20,11 @@ int main(int argc , char * argv[])
     MPI_Init( &argc , &argv );
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &p);
-
+    int CHUNK ;
+     char FileName[15];
 	if( my_rank == 0)
 	{
-        
-     
-        char FileName[15];
+       FILE *myFile; 
         printf("Enter File Name >> ");
         scanf("%s" , FileName);
 
@@ -33,17 +32,26 @@ int main(int argc , char * argv[])
        
         fscanf(myFile , "%d" ,&Condidates);  // col=3
         fscanf(myFile , "%d" ,&Voters);  // row =4
-
+        CHUNK = Voters / (p-1);
        fclose(myFile);
 	}
+    MPI_Bcast(&CHUNK , 1 , MPI_INT , tag  , MPI_COMM_WORLD);
+    MPI_Bcast(&Condidates , 1 , MPI_INT , tag  , MPI_COMM_WORLD);
+
+    printf("I'm process #%d have %d Voters To Handle\n", my_rank , CHUNK);
+
+    int myOffset = my_rank * CHUNK *Condidates ;        // 6-2 * 2 * 3
+    int *arr = malloc(CHUNK * Condidates * sizeof(int));
+    
 	MPI_Finalize();
 	return 0;
 }
-void loadDataFromFile( FILE *fp,int *arr,int rank,int row , int col )
+void loadDataFromFile( char *FileName,int *arr,int rank,int row , int col )
 {
-    
+     
    int  i,j;
-
+  FILE * myFile = fopen(FileName, "r");
+        fseek(fp,4,SEEK_SET);
   // printf("%d\t%d\n" , row , col );
     for(i =0 ;i < row  ;i++)
     {   
@@ -57,7 +65,7 @@ void loadDataFromFile( FILE *fp,int *arr,int rank,int row , int col )
            fseek(fp,1, SEEK_CUR);
            
     }
-
+       fclose(myFile);
 
 }
 
